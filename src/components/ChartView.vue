@@ -158,7 +158,7 @@ onBeforeUnmount(() => {
 	position: fixed;
 	left: 270px;
 	top: 0;
-	right: 0;
+	right: 20px;
 	bottom: 0;
 }
 </style>
