@@ -18,7 +18,6 @@ export function renderTooltip({chart, tooltip}, {state, series, plays}) {
 			players: [...play.players].sort((a, b) => a.position - b.position || a.name.localeCompare(b.name))
 		}));
 	state.date = state.games[0] ? formatIsoDate(state.games[0].date) : "";
-	state.colors = Object.fromEntries(series.map((item) => [item.label, item.color]));
 	const container = chart.canvas.parentNode;
 	const tooltipElement = container.querySelector(".chart-tooltip");
 	const tooltipWidth = tooltipElement?.offsetWidth || 0;
@@ -35,13 +34,14 @@ export function renderTooltip({chart, tooltip}, {state, series, plays}) {
 import {computed} from "vue";
 
 const props = defineProps({
-	state: {type: Object, required: true}
+	state: {type: Object, required: true},
+	playerColors: {type: Object, required: true}
 });
 
 const hosts = computed(() => [...new Set(props.state.games.map((game) => game.host))]);
 
 function playerColor(player) {
-	return props.state.colors[player.name] || "#dbe4e4";
+	return props.playerColors[player.name] || "#dbe4e4";
 }
 
 function sortedPlayers(players) {

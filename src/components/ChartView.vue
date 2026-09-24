@@ -2,7 +2,7 @@
 import {computed, createApp, onBeforeUnmount, onMounted, reactive, ref, watch} from "vue";
 import {Chart, Filler, LinearScale, LineController, LineElement, PointElement, TimeScale, Tooltip} from "chart.js";
 import "chartjs-adapter-date-fns";
-import {formatIsoDate, PLAYER_COLORS} from "../data.js";
+import {formatIsoDate} from "../data.js";
 import ChartTooltip, {renderTooltip} from "./ChartTooltip.vue";
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, TimeScale, Tooltip, Filler);
@@ -29,7 +29,8 @@ const hoverLinePlugin = {
 
 const props = defineProps({
 	plays: {type: Array, required: true},
-	filter: {type: Object, required: true}
+	filter: {type: Object, required: true},
+	playerColors: {type: Object, required: true}
 });
 
 function chartSeries(plays, activePlayers, windowSize) {
@@ -64,23 +65,23 @@ const series = computed(() => chartSeries(
 	props.filter.filteredPlays(props.plays),
 	[...props.filter.players],
 	props.filter.windowSize
-).map((item, index) => ({...item, color: PLAYER_COLORS[index % PLAYER_COLORS.length]})));
+).map((item) => ({...item, color: props.playerColors[item.label]})));
 const filtered = computed(() => props.filter.filteredPlays(props.plays));
 const canvas = ref(null);
 let chart;
 let tooltipApp;
-const tooltipState = reactive({visible: false, left: 0, top: 0, date: "", games: [], colors: {}});
+const tooltipState = reactive({visible: false, left: 0, top: 0, date: "", games: []});
 
 function render() {
 	if (chart) chart.destroy();
 	chart = new Chart(canvas.value, {
 		type: "line",
 		data: {
-			datasets: series.value.map((series, index) => ({
+			datasets: series.value.map((series) => ({
 				label: series.label,
 				data: series.data,
-				borderColor: series.color || PLAYER_COLORS[index % PLAYER_COLORS.length],
-				backgroundColor: series.color || PLAYER_COLORS[index % PLAYER_COLORS.length],
+				borderColor: series.color,
+				backgroundColor: series.color,
 				pointRadius: 3,
 				pointHoverRadius: 5,
 				borderWidth: 2,
@@ -118,8 +119,8 @@ function render() {
 						mountTooltip(context.chart);
 						renderTooltip(context, {
 							state: tooltipState,
-							series: series.value,
-							plays: filtered.value
+							plays: filtered.value,
+							playerColors: props.playerColors
 						});
 					}
 				}
@@ -133,7 +134,7 @@ function mountTooltip(currentChart) {
 	if (!tooltipApp) {
 		const element = document.createElement("div");
 		currentChart.canvas.parentNode.appendChild(element);
-		tooltipApp = createApp(ChartTooltip, {state: tooltipState});
+		tooltipApp = createApp(ChartTooltip, {state: tooltipState, playerColors: props.playerColors});
 		tooltipApp.mount(element);
 	}
 }

@@ -7,7 +7,7 @@ const props = defineProps({
 	plays: {type: Array, default: () => []}
 });
 
-const emit = defineEmits(["update-filter"]);
+const emit = defineEmits(["update-filter", "update-player-colors"]);
 
 const filter = reactive(new Filter());
 
@@ -19,6 +19,11 @@ const hosts = computed(() => ["All", ...uniqueValues(props.plays, (play) => [pla
 const games = computed(() => uniqueValues(props.plays, (play) => [play.game]));
 const players = computed(() => uniqueValues(props.plays, (play) => play.players.map((player) => player.name)));
 const filteredLength = computed(() => filter.filteredPlays(props.plays).length);
+const playerColors = computed(() => Object.fromEntries(
+	players.value
+		.filter((player) => filter.players.has(player))
+		.map((player, index) => [player, PLAYER_COLORS[index % PLAYER_COLORS.length]])
+));
 
 const recentPlayers = () => {
 	const latestPlayDate = props.plays.reduce((latest, play) => Math.max(latest, play.date.getTime()), 0);
@@ -36,6 +41,10 @@ watch(() => props.plays, () => {
 
 watch(filter, () => {
 	emit("update-filter", filter);
+}, {deep: true, immediate: true});
+
+watch(playerColors, (colors) => {
+	emit("update-player-colors", colors);
 }, {deep: true, immediate: true});
 
 function setAllGames(selected) {
@@ -63,11 +72,7 @@ function togglePlayer(player, selected) {
 }
 
 function playerColor(player) {
-	if (!filter.players.has(player)) {
-		return null;
-	}
-	const selectedPlayers = players.value.filter((candidate) => filter.players.has(candidate));
-	return PLAYER_COLORS[selectedPlayers.indexOf(player) % PLAYER_COLORS.length];
+	return playerColors.value[player] || null;
 }
 </script>
 

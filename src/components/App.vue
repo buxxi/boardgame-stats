@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, ref} from "vue";
+import {onMounted, reactive, ref} from "vue";
 import AppStatus from "./AppStatus.vue";
 import ChartView from "./ChartView.vue";
 import FilterSidebar from "./FilterSidebar.vue";
@@ -10,7 +10,13 @@ const plays = ref([]);
 const error = ref("");
 const loading = ref(true);
 const filters = ref(new Filter());
+const playerColors = reactive({});
 const dataLoader = DataLoader.fromEnvironment(import.meta.env);
+
+function updatePlayerColors(colors) {
+	Object.keys(playerColors).forEach((player) => delete playerColors[player]);
+	Object.assign(playerColors, colors);
+}
 
 onMounted(async () => {
 	if (!sheetUrl) {
@@ -34,10 +40,11 @@ onMounted(async () => {
 			v-if="!loading && !error"
 			:plays="plays"
 			@update-filter="filters = $event"
+			@update-player-colors="updatePlayerColors"
 		/>
 		<section class="content">
 			<AppStatus v-if="loading || error" :loading="loading" :error="error"/>
-			<ChartView v-else :plays="plays" :filter="filters"/>
+			<ChartView v-else :plays="plays" :filter="filters" :player-colors="playerColors"/>
 		</section>
 	</main>
 </template>
