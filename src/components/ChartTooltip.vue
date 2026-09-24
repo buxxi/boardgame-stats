@@ -60,7 +60,7 @@ function sortedPlayers(players) {
 
 		<table class="games-table">
 			<tbody>
-			<tr v-for="game in state.games" :key="`${game.host}-${game.game}`">
+			<tr v-for="(game, index) in state.games" :key="`game-${index}`">
 				<th scope="row" class="game-name">{{ game.game }}</th>
 				<td class="player-entry"
 					v-for="(player) in sortedPlayers(game.players)"
